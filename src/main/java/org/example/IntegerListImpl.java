@@ -2,13 +2,12 @@ package org.example;
 
 import org.example.Exception.InvalidIndexException;
 import org.example.Exception.NullItemException;
-import org.example.Exception.StorageIsFullException;
 
 import java.util.Arrays;
 
 public class IntegerListImpl implements IntegerList {
 
-    private final Integer[] storage;
+    private Integer[] storage;
     private int size;
 
     public IntegerListImpl() {
@@ -21,7 +20,7 @@ public class IntegerListImpl implements IntegerList {
 
     @Override
     public Integer add(Integer item) {
-        validateSize();
+        growIfNeeded();
         validateItem(item);
         storage[size++] = item;
         return item;
@@ -29,7 +28,7 @@ public class IntegerListImpl implements IntegerList {
 
     @Override
     public Integer add(int index, Integer item) {
-        validateSize();
+        growIfNeeded();
         validateItem(item);
         validateInIndex(index);
 
@@ -56,7 +55,7 @@ public class IntegerListImpl implements IntegerList {
     public Integer remove(Integer item) {
         validateItem(item);
         int index = indexOf(item);
-       return remove(index);
+        return remove(index);
     }
 
     @Override
@@ -141,10 +140,8 @@ public class IntegerListImpl implements IntegerList {
         }
     }
 
-    private void validateSize() {
-        if (size == storage.length) {
-            throw new StorageIsFullException();
-        }
+    private void growIfNeeded() {
+        grow();
     }
 
     private void validateInIndex(int index) {
@@ -154,18 +151,10 @@ public class IntegerListImpl implements IntegerList {
     }
 
     private void sort(Integer[] arr) {
-        for (int i = 1; i < arr.length; i++) {
-            int temp = arr[i];
-            int j = i;
-            while (j > 0 && arr[j - 1] >= temp) {
-                arr[j] = arr[j - 1];
-                j--;
-            }
-            arr[j] = temp;
-        }
+        quickSort(arr, 0, arr.length - 1);
     }
 
-    private boolean privateSearch(Integer[] arr,Integer item) {
+    private boolean privateSearch(Integer[] arr, Integer item) {
         int min = 0;
         int max = arr.length - 1;
 
@@ -184,4 +173,38 @@ public class IntegerListImpl implements IntegerList {
         }
         return false;
     }
+
+    private void quickSort(Integer[] arr, int begin, int end) {
+        if (begin < end) {
+            int partitionIndex = partition(arr, begin, end);
+
+            quickSort(arr, begin, partitionIndex - 1);
+            quickSort(arr, partitionIndex + 1, end);
+        }
+    }
+
+    private int partition(Integer[] arr, int begin, int end) {
+        int pivot = arr[end];
+        int i = (begin - 1);
+
+        for (int j = begin; j < end; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+                swapElements(arr, i, j);
+            }
+        }
+        swapElements(arr, i + 1, end);
+        return i + 1;
+    }
+
+    private void swapElements(Integer[] arr, int i1, int i2) {
+        int temp = arr[i1];
+        arr[i1] = arr[i2];
+        arr[i2] = temp;
+    }
+
+    private void grow() {
+        storage = Arrays.copyOf(storage, size + size / 2);
+    }
+
 }
